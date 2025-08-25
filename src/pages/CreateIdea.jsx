@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { useApp } from '../contexts/AppContext'
+import { useToast } from '../contexts/ToastContext'
 import Card from '../components/Card'
 import InputField from '../components/InputField'
 import Button from '../components/Button'
@@ -9,6 +10,7 @@ import Button from '../components/Button'
 export default function CreateIdea() {
   const navigate = useNavigate()
   const { state, dispatch, actionTypes } = useApp()
+  const { addToast } = useToast()
   const [formData, setFormData] = useState({
     title: '',
     description: ''
@@ -58,7 +60,10 @@ export default function CreateIdea() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!validateForm()) return
+    if (!validateForm()) {
+      addToast('Please fix the errors in the form', 'error')
+      return
+    }
     
     setIsSubmitting(true)
     
@@ -96,10 +101,14 @@ export default function CreateIdea() {
         })
       })
       
+      // Show success toast
+      addToast('Idea created successfully!', 'success')
+      
       // Navigate to the new idea
       navigate(`/idea/${newIdea.ideaId}`)
     } catch (error) {
       console.error('Error creating idea:', error)
+      addToast('Failed to create idea. Please try again.', 'error')
     } finally {
       setIsSubmitting(false)
     }

@@ -2,25 +2,39 @@ import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Zap, Share2 } from 'lucide-react'
 import { useApp } from '../contexts/AppContext'
+import { useToast } from '../contexts/ToastContext'
 import { generateUIPreview } from '../services/aiService'
 import Card from '../components/Card'
 import VotingButton from '../components/VotingButton'
 import Button from '../components/Button'
 import InputField from '../components/InputField'
 import AIPreviewFrame from '../components/AIPreviewFrame'
+import { SkeletonCard, SkeletonText } from '../components/Skeleton'
 
 export default function IdeaDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { state, dispatch, actionTypes } = useApp()
+  const { addToast } = useToast()
   const [newFeature, setNewFeature] = useState('')
   const [isAddingFeature, setIsAddingFeature] = useState(false)
   const [isGeneratingPreview, setIsGeneratingPreview] = useState(false)
+  const [previewError, setPreviewError] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Find the idea
   const idea = state.ideas.find(idea => idea.ideaId === id)
   const features = state.featureRequests.filter(feature => feature.ideaId === id)
   const generatedPreview = state.generatedPreviews[id]
+  
+  // Simulate loading state (in a real app, this would be based on actual data fetching)
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [])
 
   if (!idea) {
     return (
@@ -56,6 +70,12 @@ export default function IdeaDetail() {
       type: actionTypes.ADD_VOTE,
       payload: { targetType, targetId, vote: newVote }
     })
+    
+    // Show toast notification
+    addToast(
+      `${voteType === 'up' ? 'Upvoted' : 'Downvoted'} ${targetType === 'idea' ? 'idea' : 'feature'}!`, 
+      'success'
+    )
   }
 
   // Handle adding feature
@@ -79,8 +99,13 @@ export default function IdeaDetail() {
       })
 
       setNewFeature('')
+      
+      // Show success toast
+      addToast('Feature request added successfully!', 'success')
     } catch (error) {
       console.error('Error adding feature:', error)
+      // Show error toast
+      addToast('Failed to add feature request. Please try again.', 'error')
     } finally {
       setIsAddingFeature(false)
     }
@@ -89,6 +114,7 @@ export default function IdeaDetail() {
   // Handle AI preview generation
   const handleGeneratePreview = async () => {
     setIsGeneratingPreview(true)
+    setPreviewError(null)
     
     try {
       const preview = await generateUIPreview(idea, features)
@@ -97,8 +123,15 @@ export default function IdeaDetail() {
         type: actionTypes.SET_GENERATED_PREVIEW,
         payload: { id: idea.ideaId, preview }
       })
+      
+      // Show success toast
+      addToast('Preview generated successfully!', 'success')
     } catch (error) {
       console.error('Error generating preview:', error)
+      setPreviewError('Failed to generate preview. Please try again.')
+      
+      // Show error toast
+      addToast('Failed to generate preview. Please try again.', 'error')
     } finally {
       setIsGeneratingPreview(false)
     }
@@ -108,11 +141,87 @@ export default function IdeaDetail() {
   const handleShare = () => {
     const url = window.location.href
     navigator.clipboard.writeText(url)
-    alert('Link copied to clipboard!')
+    addToast('Link copied to clipboard!', 'info')
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button 
+              variant="secondary" 
+              size="sm"
+              onClick={() => navigate('/')}
+              disabled
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </div>
+          
+          <Button 
+            variant="secondary"
+            disabled
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Idea Details Skeleton */}
+            <SkeletonCard />
+            
+            {/* Feature Requests Skeleton */}
+            <Card>
+              <Card.Header>
+                <h2 className="h2">Feature Requests</h2>
+              </Card.Header>
+              <Card.Content>
+                <div className="space-y-4">
+                  <SkeletonText lines={3} />
+                </div>
+              </Card.Content>
+            </Card>
+          </div>
+          
+          {/* Sidebar Skeleton */}
+          <div className="space-y-6">
+            <Card>
+              <Card.Header>
+                <h3 className="h2">AI Preview</h3>
+              </Card.Header>
+              <Card.Content>
+                <div className="space-y-4">
+                  <SkeletonText lines={2} />
+                  <div className="h-10 w-full bg-surface/50 rounded-md animate-pulse" />
+                </div>
+              </Card.Content>
+            </Card>
+            
+            <Card>
+              <Card.Header>
+                <h3 className="h2">Stats</h3>
+              </Card.Header>
+              <Card.Content>
+                <div className="space-y-3">
+                  <SkeletonText lines={3} />
+                </div>
+              </Card.Content>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -141,21 +250,23 @@ export default function IdeaDetail() {
           {/* Idea Details */}
           <Card>
             <Card.Content className="p-6">
-              <div className="flex items-start space-x-4">
-                <div className="flex flex-col items-center space-y-2">
-                  <VotingButton 
-                    variant="up" 
-                    count={ideaVotes.upVotes}
-                    onClick={() => handleVote('idea', idea.ideaId, 'up')}
-                  />
-                  <div className="text-lg font-bold text-text-primary">
-                    {ideaVotes.total}
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <div className="flex sm:flex-col items-center gap-2 sm:space-y-2 w-full sm:w-auto mb-4 sm:mb-0">
+                  <div className="flex items-center gap-2 sm:flex-col">
+                    <VotingButton 
+                      variant="up" 
+                      count={ideaVotes.upVotes}
+                      onClick={() => handleVote('idea', idea.ideaId, 'up')}
+                    />
+                    <div className="text-lg font-bold text-text-primary">
+                      {ideaVotes.total}
+                    </div>
+                    <VotingButton 
+                      variant="down" 
+                      count={ideaVotes.downVotes}
+                      onClick={() => handleVote('idea', idea.ideaId, 'down')}
+                    />
                   </div>
-                  <VotingButton 
-                    variant="down" 
-                    count={ideaVotes.downVotes}
-                    onClick={() => handleVote('idea', idea.ideaId, 'down')}
-                  />
                 </div>
                 
                 <div className="flex-1 space-y-4">
@@ -192,8 +303,8 @@ export default function IdeaDetail() {
                     .map((feature) => {
                       const featureVotes = getVoteCounts(feature.votes)
                       return (
-                        <div key={feature.featureId} className="flex items-center space-x-4 p-4 bg-bg rounded-lg border border-border">
-                          <div className="flex items-center space-x-2">
+                        <div key={feature.featureId} className="flex flex-col sm:flex-row items-start gap-4 p-4 bg-bg rounded-lg border border-border">
+                          <div className="flex items-center gap-2 w-full sm:w-auto mb-2 sm:mb-0">
                             <VotingButton 
                               variant="up" 
                               count={featureVotes.upVotes}
@@ -304,7 +415,7 @@ export default function IdeaDetail() {
       </div>
 
       {/* AI Preview Display */}
-      {generatedPreview && (
+      {(generatedPreview || isGeneratingPreview || previewError) && (
         <Card>
           <Card.Header>
             <h3 className="h2">Generated Preview</h3>
@@ -313,6 +424,8 @@ export default function IdeaDetail() {
             <AIPreviewFrame 
               preview={generatedPreview}
               title={`Preview for "${idea.title}"`}
+              isLoading={isGeneratingPreview}
+              error={previewError}
             />
           </Card.Content>
         </Card>

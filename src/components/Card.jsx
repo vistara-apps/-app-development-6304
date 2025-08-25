@@ -6,7 +6,8 @@ export default function Card({ children, variant = 'default', className, ...prop
     <div 
       className={cn(
         'bg-surface rounded-lg shadow-card border border-border',
-        variant === 'interactive' && 'hover:bg-surface/80 transition-colors cursor-pointer',
+        'transition-all duration-200 animate-fade-in',
+        variant === 'interactive' && 'hover:bg-surface/80 hover:shadow-lg hover:scale-[1.01] cursor-pointer',
         className
       )}
       {...props}
