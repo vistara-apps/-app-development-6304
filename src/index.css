@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-bg text-text-primary font-sans antialiased;
+  }
+}
+
+@layer components {
+  .h1 {
+    @apply text-3xl font-semibold;
+  }
+  
+  .h2 {
+    @apply text-2xl font-semibold;
+  }
+  
+  .body {
+    @apply text-base font-normal leading-7;
+  }
+  
+  .display {
+    @apply text-5xl font-bold;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
