@@ -16,7 +16,8 @@ export default function VotingButton({
     <button
       onClick={onClick}
       className={cn(
-        'flex flex-col items-center p-2 rounded-md transition-colors',
+        'flex flex-col items-center p-2 rounded-md',
+        'transition-all duration-200 transform hover:scale-110 active:scale-95',
         selected 
           ? isUp 
             ? 'bg-accent/20 text-accent' 
@@ -24,8 +25,9 @@ export default function VotingButton({
           : 'text-text-secondary hover:text-text-primary hover:bg-surface',
         className
       )}
+      aria-label={`${isUp ? 'Upvote' : 'Downvote'} (${count} votes)`}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className={cn("h-5 w-5", isUp ? "animate-bounce-subtle" : "animate-bounce-down-subtle")} />
       <span className="text-sm font-medium">{count}</span>
     </button>
   )

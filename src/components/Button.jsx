@@ -12,9 +12,10 @@ export default function Button({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+        'inline-flex items-center justify-center rounded-md font-medium',
+        'transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]',
         'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg',
-        'disabled:opacity-50 disabled:pointer-events-none',
+        'disabled:opacity-50 disabled:pointer-events-none disabled:transform-none',
         
         // Variants
         variant === 'primary' && 'bg-primary text-white hover:bg-primary/90 focus:ring-primary',
@@ -31,10 +32,10 @@ export default function Button({
       disabled={loading}
       {...props}
     >
-      {loading && (
+      {loading ? (
         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
-      )}
-      {children}
+      ) : null}
+      <span className={loading ? "animate-pulse" : ""}>{children}</span>
     </button>
   )
 }

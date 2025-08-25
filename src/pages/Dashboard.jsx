@@ -1,14 +1,25 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, TrendingUp, Users } from 'lucide-react'
 import { useApp } from '../contexts/AppContext'
 import Card from '../components/Card'
 import VotingButton from '../components/VotingButton'
 import Button from '../components/Button'
+import { SkeletonCard, SkeletonText } from '../components/Skeleton'
 
 export default function Dashboard() {
   const { state } = useApp()
   const { ideas, user } = state
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Simulate loading state (in a real app, this would be based on actual data fetching)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1000)
+    
+    return () => clearTimeout(timer)
+  }, [])
 
   // Calculate vote counts for ideas
   const getVoteCounts = (votes) => {
@@ -25,8 +36,55 @@ export default function Dashboard() {
     }))
     .sort((a, b) => b.voteCounts.total - a.voteCounts.total)
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="h-12 w-3/4 mx-auto bg-surface/50 rounded-md animate-pulse" />
+          <div className="h-20 w-2/3 mx-auto bg-surface/50 rounded-md animate-pulse" />
+          <div className="h-10 w-48 mx-auto bg-surface/50 rounded-md animate-pulse mt-4" />
+        </div>
+
+        {/* Stats Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <Card.Content className="p-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-surface/50 rounded-lg animate-pulse">
+                    <div className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <div className="h-6 w-16 bg-surface/50 rounded-md animate-pulse" />
+                    <div className="h-4 w-24 bg-surface/50 rounded-md animate-pulse mt-2" />
+                  </div>
+                </div>
+              </Card.Content>
+            </Card>
+          ))}
+        </div>
+        
+        {/* Ideas List Skeleton */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="h-8 w-32 bg-surface/50 rounded-md animate-pulse" />
+            <div className="h-10 w-24 bg-surface/50 rounded-md animate-pulse" />
+          </div>
+          
+          <div className="grid gap-6">
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div className="text-center space-y-4">
         <h1 className="display">Transform Ideas into Reality</h1>

@@ -1,9 +1,13 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Lightbulb, Plus, Home, User } from 'lucide-react'
+import { Lightbulb, Plus, Home, User, Moon, Sun } from 'lucide-react'
+import MobileMenu from './MobileMenu'
+import { cn } from '../utils/cn'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function AppLayout({ children }) {
   const location = useLocation()
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <div className="min-h-screen bg-bg">
@@ -16,14 +20,16 @@ export default function AppLayout({ children }) {
               <span className="display text-xl font-bold">IdeaForge</span>
             </Link>
             
-            <nav className="flex items-center space-x-6">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-6">
               <Link 
                 to="/" 
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                className={cn(
+                  "flex items-center space-x-2 px-4 py-2 rounded-md transition-colors",
                   location.pathname === '/' 
                     ? 'bg-primary text-white' 
                     : 'text-text-secondary hover:text-text-primary hover:bg-surface'
-                }`}
+                )}
               >
                 <Home className="h-4 w-4" />
                 <span>Dashboard</span>
@@ -31,11 +37,12 @@ export default function AppLayout({ children }) {
               
               <Link 
                 to="/create" 
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors ${
+                className={cn(
+                  "flex items-center space-x-2 px-4 py-2 rounded-md transition-colors",
                   location.pathname === '/create' 
                     ? 'bg-primary text-white' 
                     : 'text-text-secondary hover:text-text-primary hover:bg-surface'
-                }`}
+                )}
               >
                 <Plus className="h-4 w-4" />
                 <span>New Idea</span>
@@ -45,7 +52,38 @@ export default function AppLayout({ children }) {
                 <User className="h-4 w-4" />
                 <span>demo_user</span>
               </div>
+              
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-surface transition-colors"
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </button>
             </nav>
+            
+            {/* Mobile Menu */}
+            <div className="flex items-center md:hidden">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 mr-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-surface transition-colors"
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </button>
+              
+              <MobileMenu />
+            </div>
           </div>
         </div>
       </header>
